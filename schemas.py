@@ -1,48 +1,45 @@
 """
-Database Schemas
+Database Schemas for Nexusflow Media WaaS
 
-Define your MongoDB collection schemas here using Pydantic models.
-These schemas are used for data validation in your application.
-
-Each Pydantic model represents a collection in your database.
-Model name is converted to lowercase for the collection name:
-- User -> "user" collection
-- Product -> "product" collection
-- BlogPost -> "blogs" collection
+Each Pydantic model maps to a MongoDB collection (lowercase of class name)
 """
+from pydantic import BaseModel, Field, EmailStr
+from typing import Optional, List
 
-from pydantic import BaseModel, Field
-from typing import Optional
+class Plan(BaseModel):
+    name: str = Field(..., description="Plan display name")
+    slug: str = Field(..., description="URL-safe identifier, e.g., basic, growth, premium")
+    price_ngn: int = Field(..., ge=0, description="Monthly price in Naira")
+    description: str = Field(..., description="Short plan blurb")
+    features: List[str] = Field(default_factory=list)
+    popular: bool = Field(False, description="Highlight as popular")
 
-# Example schemas (replace with your own):
+class Subscription(BaseModel):
+    email: EmailStr
+    business_name: str
+    plan_slug: str
+    status: str = Field("pending", description="pending, active, canceled, failed")
+    paystack_reference: Optional[str] = None
+    authorization_url: Optional[str] = None
 
-class User(BaseModel):
-    """
-    Users collection schema
-    Collection name: "user" (lowercase of class name)
-    """
-    name: str = Field(..., description="Full name")
-    email: str = Field(..., description="Email address")
-    address: str = Field(..., description="Address")
-    age: Optional[int] = Field(None, ge=0, le=120, description="Age in years")
-    is_active: bool = Field(True, description="Whether user is active")
+class Clientrequest(BaseModel):
+    email: EmailStr
+    business_name: str
+    message: str
+    plan_slug: Optional[str] = None
 
-class Product(BaseModel):
-    """
-    Products collection schema
-    Collection name: "product" (lowercase of class name)
-    """
-    title: str = Field(..., description="Product title")
-    description: Optional[str] = Field(None, description="Product description")
-    price: float = Field(..., ge=0, description="Price in dollars")
-    category: str = Field(..., description="Product category")
-    in_stock: bool = Field(True, description="Whether product is in stock")
+class Portfolioitem(BaseModel):
+    title: str
+    category: str
+    thumbnail_url: str
+    url: Optional[str] = None
 
-# Add your own schemas here:
-# --------------------------------------------------
+class Testimonial(BaseModel):
+    name: str
+    role: str
+    company: str
+    quote: str
 
-# Note: The Flames database viewer will automatically:
-# 1. Read these schemas from GET /schema endpoint
-# 2. Use them for document validation when creating/editing
-# 3. Handle all database operations (CRUD) directly
-# 4. You don't need to create any database endpoints!
+class Faq(BaseModel):
+    question: str
+    answer: str
